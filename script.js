@@ -115,23 +115,54 @@ function init() {
     // Ensure high score is properly loaded as a number
     highScore = parseInt(localStorage.getItem('fruitRunHighScore')) || 0;
     document.getElementById('high-score').textContent = highScore;
-    canvas.width = 800;
-    canvas.height = 400;
+    
+    // Make canvas responsive
+    const canvas = document.getElementById('gameCanvas');
+    
+    // Set canvas size based on screen size
+    if (window.innerWidth < 768) {
+        // Mobile size
+        canvas.width = Math.min(window.innerWidth * 0.95, 600);
+        canvas.height = Math.min(window.innerHeight * 0.5, 300);
+    } else {
+        // Desktop size
+        canvas.width = 800;
+        canvas.height = 400;
+    }
     
     // Event listeners
     document.addEventListener('keydown', handleInput);
     document.addEventListener('click', handleInput);
+    document.addEventListener('touchstart', handleInput);
     document.getElementById('start-button').addEventListener('click', startGame);
     document.getElementById('retry-button').addEventListener('click', startGame);
     document.getElementById('reset-high-score').addEventListener('click', resetHighScore);
     
+    // Handle window resize
+    window.addEventListener('resize', handleResize);
+    
     gameLoop();
+}
+
+// Handle window resize
+function handleResize() {
+    const canvas = document.getElementById('gameCanvas');
+    
+    if (window.innerWidth < 768) {
+        canvas.width = Math.min(window.innerWidth * 0.95, 600);
+        canvas.height = Math.min(window.innerHeight * 0.5, 300);
+    } else {
+        canvas.width = 800;
+        canvas.height = 400;
+    }
 }
 
 // Handle input
 function handleInput(e) {
     if (gameState === 'playing') {
-        if (e.type === 'keydown' && e.code === 'Space' || e.type === 'click') {
+        if (e.type === 'keydown' && e.code === 'Space' || 
+            e.type === 'click' || 
+            e.type === 'touchstart') {
             e.preventDefault();
             jump();
         }
@@ -661,12 +692,20 @@ function resetHighScore() {
     }
 }
 
-// Collision detection
+// Collision detection with smaller bounds for better gameplay
 function checkCollision(rect1, rect2) {
-    return rect1.x < rect2.x + rect2.width &&
-           rect1.x + rect1.width > rect2.x &&
-           rect1.y < rect2.y + rect2.height &&
-           rect1.y + rect1.height > rect2.y;
+    // Make player collision bounds slightly smaller for more forgiving gameplay
+    const player1 = {
+        x: rect1.x + 2,
+        y: rect1.y + 2,
+        width: rect1.width - 4,
+        height: rect1.height - 4
+    };
+    
+    return player1.x < rect2.x + rect2.width &&
+           player1.x + player1.width > rect2.x &&
+           player1.y < rect2.y + rect2.height &&
+           player1.y + player1.height > rect2.y;
 }
 
 // Render game
@@ -866,17 +905,19 @@ function drawPlayer() {
             ctx.stroke();
         }
     } else if (player.currentFruit === 'grape') {
-        // Grape: cluster of small circles
+        // Grape: cluster of small circles arranged more compactly
         ctx.fillStyle = '#800080';
         const grapePositions = [
-            {x: 0, y: -6}, {x: -4, y: -2}, {x: 4, y: -2},
-            {x: -6, y: 2}, {x: 0, y: 2}, {x: 6, y: 2},
-            {x: -3, y: 6}, {x: 3, y: 6}
+            {x: 0, y: -8}, 
+            {x: -5, y: -3}, {x: 5, y: -3},
+            {x: -7, y: 2}, {x: 0, y: 2}, {x: 7, y: 2},
+            {x: -4, y: 7}, {x: 4, y: 7},
+            {x: 0, y: 10}
         ];
         
         grapePositions.forEach(pos => {
             ctx.beginPath();
-            ctx.arc(centerX + pos.x, centerY + pos.y, 4, 0, Math.PI * 2);
+            ctx.arc(centerX + pos.x, centerY + pos.y, 3.5, 0, Math.PI * 2);
             ctx.fill();
         });
     }
