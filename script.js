@@ -355,6 +355,13 @@ function update() {
     const canvas = document.getElementById('gameCanvas');
     const groundY = canvas.height - 100;
     
+    // Top boundary check to prevent player from going off-screen during jumps
+    const topBoundary = 20; // Minimum distance from top of canvas
+    if (player.y < topBoundary) {
+        player.y = topBoundary;
+        player.velY = Math.max(player.velY, 0); // Stop upward movement
+    }
+    
     if (player.y >= groundY) {
         player.y = groundY;
         player.velY = 0;
@@ -920,14 +927,14 @@ function drawPlayer() {
             ctx.stroke();
         }
     } else if (player.currentFruit === 'grape') {
-        // Grape: cluster of small circles arranged more compactly
+        // Grape: cluster of small circles arranged more compactly and positioned lower
         ctx.fillStyle = '#800080';
         const grapePositions = [
-            { x: 0, y: -8 },
-            { x: -5, y: -3 }, { x: 5, y: -3 },
-            { x: -7, y: 2 }, { x: 0, y: 2 }, { x: 7, y: 2 },
-            { x: -4, y: 7 }, { x: 4, y: 7 },
-            { x: 0, y: 10 }
+            { x: 0, y: -2 },      // Top grape moved down
+            { x: -5, y: 3 }, { x: 5, y: 3 },     // Second row moved down
+            { x: -7, y: 8 }, { x: 0, y: 8 }, { x: 7, y: 8 },     // Third row moved down
+            { x: -4, y: 13 }, { x: 4, y: 13 },   // Fourth row moved down
+            { x: 0, y: 16 }       // Bottom grape moved down
         ];
 
         grapePositions.forEach(pos => {
