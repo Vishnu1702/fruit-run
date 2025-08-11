@@ -74,16 +74,16 @@ const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 function playSound(frequency, duration, type = 'sine') {
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
-    
+
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
-    
+
     oscillator.frequency.value = frequency;
     oscillator.type = type;
-    
+
     gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
-    
+
     oscillator.start(audioContext.currentTime);
     oscillator.stop(audioContext.currentTime + duration);
 }
@@ -115,21 +115,18 @@ function init() {
     // Ensure high score is properly loaded as a number
     highScore = parseInt(localStorage.getItem('fruitRunHighScore')) || 0;
     document.getElementById('high-score').textContent = highScore;
-    
+
     // Make canvas responsive
     const canvas = document.getElementById('gameCanvas');
     
-    // Set canvas size based on screen size
-    if (window.innerWidth < 768) {
-        // Mobile size
-        canvas.width = Math.min(window.innerWidth * 0.95, 600);
-        canvas.height = Math.min(window.innerHeight * 0.5, 300);
-    } else {
-        // Desktop size
-        canvas.width = 800;
-        canvas.height = 400;
-    }
+    // Better responsive canvas sizing
+    const maxWidth = Math.min(window.innerWidth * 0.9, 800);
+    const maxHeight = Math.min(window.innerHeight * 0.6, 400);
     
+    // Minimum dimensions for gameplay
+    canvas.width = Math.max(maxWidth, 320);
+    canvas.height = Math.max(maxHeight, 240);
+
     // Event listeners
     document.addEventListener('keydown', handleInput);
     document.addEventListener('click', handleInput);
@@ -137,31 +134,31 @@ function init() {
     document.getElementById('start-button').addEventListener('click', startGame);
     document.getElementById('retry-button').addEventListener('click', startGame);
     document.getElementById('reset-high-score').addEventListener('click', resetHighScore);
-    
+
     // Handle window resize
     window.addEventListener('resize', handleResize);
-    
+
     gameLoop();
 }
 
 // Handle window resize
 function handleResize() {
     const canvas = document.getElementById('gameCanvas');
+
+    // Better responsive canvas sizing
+    const maxWidth = Math.min(window.innerWidth * 0.9, 800);
+    const maxHeight = Math.min(window.innerHeight * 0.6, 400);
     
-    if (window.innerWidth < 768) {
-        canvas.width = Math.min(window.innerWidth * 0.95, 600);
-        canvas.height = Math.min(window.innerHeight * 0.5, 300);
-    } else {
-        canvas.width = 800;
-        canvas.height = 400;
-    }
+    // Minimum dimensions for gameplay
+    canvas.width = Math.max(maxWidth, 320);
+    canvas.height = Math.max(maxHeight, 240);
 }
 
 // Handle input
 function handleInput(e) {
     if (gameState === 'playing') {
-        if (e.type === 'keydown' && e.code === 'Space' || 
-            e.type === 'click' || 
+        if (e.type === 'keydown' && e.code === 'Space' ||
+            e.type === 'click' ||
             e.type === 'touchstart') {
             e.preventDefault();
             jump();
@@ -176,7 +173,7 @@ function jump() {
     if (player.megaJumpTimer > 0) {
         jumpPower *= 1.5; // 50% more jump power
     }
-    
+
     if (player.grounded) {
         player.velY = -jumpPower;
         player.jumping = true;
@@ -189,7 +186,7 @@ function jump() {
         player.canDoubleJump = false;
         sounds.jump();
         // Create visual effect for double jump
-        createParticles(player.x + player.width/2, player.y + player.height/2, '#00FFFF');
+        createParticles(player.x + player.width / 2, player.y + player.height / 2, '#00FFFF');
     }
 }
 
@@ -200,10 +197,13 @@ function startGame() {
     gameSpeed = baseGameSpeed;
     frameCount = 0;
     lastMilestone = 0;
+
+    // Reset player position based on canvas size
+    const canvas = document.getElementById('gameCanvas');
+    const groundY = canvas.height - 100; // Ground is 100px from bottom
     
-    // Reset player
     player.x = 100;
-    player.y = 300;
+    player.y = groundY;
     player.velY = 0;
     player.jumping = false;
     player.grounded = true;
@@ -218,13 +218,13 @@ function startGame() {
     player.runCycle = 0;
     player.armReach = 0;
     player.eyeBlink = 0;
-    
+
     // Clear arrays
     obstacles = [];
     fruits = [];
     particles = [];
     bonusItems = [];
-    
+
     // Hide UI screens
     document.getElementById('start-screen').classList.add('hidden');
     document.getElementById('game-over-screen').classList.add('hidden');
@@ -233,11 +233,11 @@ function startGame() {
 // Game over
 function gameOver() {
     gameState = 'gameOver';
-    
+
     // Update high score - ensure we're working with numbers
     const currentHighScore = parseInt(localStorage.getItem('fruitRunHighScore')) || 0;
     let isNewRecord = false;
-    
+
     if (score > currentHighScore) {
         highScore = score;
         localStorage.setItem('fruitRunHighScore', highScore.toString());
@@ -247,11 +247,11 @@ function gameOver() {
     } else {
         document.getElementById('new-record').classList.add('hidden');
     }
-    
+
     document.getElementById('final-score').textContent = score;
     document.getElementById('game-over-screen').classList.remove('hidden');
     sounds.hit();
-    
+
     // Show celebration message for new high score after a delay
     if (isNewRecord) {
         setTimeout(() => {
@@ -271,9 +271,9 @@ function showCelebrationMessage() {
             <p>🏆 You're a Fruit Running Champion! 🏆</p>
         </div>
     `;
-    
+
     document.body.appendChild(celebrationDiv);
-    
+
     // Remove celebration after 3 seconds
     setTimeout(() => {
         if (celebrationDiv.parentNode) {
@@ -285,15 +285,15 @@ function showCelebrationMessage() {
 // Update game objects
 function update() {
     if (gameState !== 'playing') return;
-    
+
     frameCount++;
-    
+
     // Milestone-based speed increases
     checkSpeedMilestones();
-    
+
     // Gradual speed increase over time
     gameSpeed += 0.0005; // Reduced gradual increase since we have milestones
-    
+
     // Update power-up timers
     if (player.speedBoostTimer > 0) {
         player.speedBoostTimer--;
@@ -307,19 +307,19 @@ function update() {
     if (player.doubleJumpTimer > 0) {
         player.doubleJumpTimer--;
     }
-    
+
     // Update player animations
     if (player.grounded) {
         player.runCycle += 0.3; // Running animation speed
     }
-    
+
     // Arm reaching animation when jumping or near fruits
     if (player.jumping || !player.grounded) {
         player.armReach = Math.min(player.armReach + 0.2, 1);
     } else {
         player.armReach = Math.max(player.armReach - 0.1, 0);
     }
-    
+
     // Check if near fruits to extend arms
     let nearFruit = false;
     for (let fruit of fruits) {
@@ -329,31 +329,34 @@ function update() {
             break;
         }
     }
-    
+
     if (nearFruit && !player.grounded) {
         player.armReach = Math.min(player.armReach + 0.3, 1);
     }
-    
+
     // Eye blinking animation
     player.eyeBlink += 0.1;
     if (player.eyeBlink > Math.PI * 2) {
         player.eyeBlink = 0;
     }
-    
+
     // Update player physics
     let gravity = 0.6; // Base gravity
-    
+
     // Floating power-up reduces gravity significantly
     if (player.floatTimer > 0) {
         gravity = 0.2;
     }
-    
+
     player.velY += gravity;
     player.y += player.velY;
+
+    // Ground collision - make it responsive to canvas height
+    const canvas = document.getElementById('gameCanvas');
+    const groundY = canvas.height - 100;
     
-    // Ground collision
-    if (player.y >= 300) {
-        player.y = 300;
+    if (player.y >= groundY) {
+        player.y = groundY;
         player.velY = 0;
         player.grounded = true;
         player.jumping = false;
@@ -361,45 +364,45 @@ function update() {
             player.canDoubleJump = true; // Reset double jump when landing
         }
     }
-    
+
     // Spawn obstacles
     if (frameCount % Math.max(60, 120 - Math.floor(gameSpeed * 10)) === 0) {
         spawnObstacle();
     }
-    
+
     // Spawn fruits
     if (frameCount % 180 === 0) {
         spawnFruit();
     }
-    
+
     // Spawn bonus items
     if (frameCount % 300 === 0 && Math.random() < 0.7) {
         spawnBonusItem();
     }
-    
+
     // Update obstacles
     updateObstacles();
-    
+
     // Update fruits
     updateFruits();
-    
+
     // Update bonus items
     updateBonusItems();
-    
+
     // Update particles
     updateParticles();
-    
+
     // Update score for surviving
     if (frameCount % 30 === 0) {
         score += 10;
     }
-    
+
     // Update UI
     const currentLevel = Math.floor(score / 500) + 1;
     document.getElementById('current-level').textContent = currentLevel;
     document.getElementById('current-score').textContent = score;
     document.getElementById('speed-display').textContent = gameSpeed.toFixed(1) + 'x';
-    
+
     // Update power-up display
     updatePowerUpDisplay();
 }
@@ -407,9 +410,11 @@ function update() {
 // Spawn obstacle
 function spawnObstacle() {
     const obstacleType = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
+    const groundY = canvas.height - 100;
+    
     obstacles.push({
         x: canvas.width,
-        y: obstacleType.type === 'water' ? 320 : 300 - obstacleType.height,
+        y: obstacleType.type === 'water' ? groundY + 20 : groundY - obstacleType.height,
         width: obstacleType.width,
         height: obstacleType.height,
         type: obstacleType.type,
@@ -424,9 +429,13 @@ function spawnFruit() {
     const randomFruit = fruitNames[Math.floor(Math.random() * fruitNames.length)];
     const fruit = fruitTypes[randomFruit];
     
+    // Make fruit spawning relative to canvas height
+    const minY = canvas.height * 0.2; // 20% from top
+    const maxY = canvas.height * 0.6; // 60% from top
+
     fruits.push({
         x: canvas.width,
-        y: 150 + Math.random() * 120, // Spawn fruits at various heights including higher up
+        y: minY + Math.random() * (maxY - minY), // Spawn fruits at various heights
         width: 30,
         height: 30,
         type: randomFruit,
@@ -441,9 +450,13 @@ function spawnFruit() {
 function spawnBonusItem() {
     const bonusType = bonusTypes[Math.floor(Math.random() * bonusTypes.length)];
     
+    // Make bonus item spawning relative to canvas height
+    const minY = canvas.height * 0.15; // 15% from top
+    const maxY = canvas.height * 0.5;  // 50% from top
+
     bonusItems.push({
         x: canvas.width,
-        y: 150 + Math.random() * 100,
+        y: minY + Math.random() * (maxY - minY),
         width: 25,
         height: 25,
         type: bonusType.type,
@@ -461,17 +474,17 @@ function updateObstacles() {
     if (player.speedBoostTimer > 0) {
         currentSpeed *= 0.5; // Slow down obstacles when speed boost is active
     }
-    
+
     for (let i = obstacles.length - 1; i >= 0; i--) {
         const obstacle = obstacles[i];
         obstacle.x -= currentSpeed;
-        
+
         // Check collision with player
         if (checkCollision(player, obstacle)) {
             gameOver();
             return;
         }
-        
+
         // Remove off-screen obstacles
         if (obstacle.x + obstacle.width < 0) {
             obstacles.splice(i, 1);
@@ -486,17 +499,17 @@ function updateFruits() {
     if (player.speedBoostTimer > 0) {
         currentSpeed *= 0.5;
     }
-    
+
     for (let i = fruits.length - 1; i >= 0; i--) {
         const fruit = fruits[i];
         fruit.x -= currentSpeed;
         fruit.bobOffset += 0.1;
-        
+
         // Check collision with player
         if (checkCollision(player, fruit)) {
             // Collect fruit
             score += fruit.points;
-            
+
             // Transform player if different fruit
             if (player.currentFruit !== fruit.type) {
                 player.currentFruit = fruit.type;
@@ -506,11 +519,11 @@ function updateFruits() {
             } else {
                 sounds.collect();
             }
-            
+
             fruits.splice(i, 1);
             continue;
         }
-        
+
         // Remove off-screen fruits
         if (fruit.x + fruit.width < 0) {
             fruits.splice(i, 1);
@@ -525,16 +538,16 @@ function updateBonusItems() {
     if (player.speedBoostTimer > 0) {
         currentSpeed *= 0.5;
     }
-    
+
     for (let i = bonusItems.length - 1; i >= 0; i--) {
         const bonus = bonusItems[i];
         bonus.x -= currentSpeed;
         bonus.sparkle += 0.2;
-        
+
         // Check collision with player
         if (checkCollision(player, bonus)) {
             score += bonus.points;
-            
+
             // Apply bonus effects
             if (bonus.effect === 'speed') {
                 player.speedBoostTimer = bonus.duration;
@@ -552,12 +565,12 @@ function updateBonusItems() {
             } else {
                 createParticles(bonus.x, bonus.y, '#FFD700');
             }
-            
+
             sounds.bonus();
             bonusItems.splice(i, 1);
             continue;
         }
-        
+
         // Remove off-screen bonus items
         if (bonus.x + bonus.width < 0) {
             bonusItems.splice(i, 1);
@@ -574,7 +587,7 @@ function updateParticles() {
         particle.velY += 0.2;
         particle.life--;
         particle.alpha = particle.life / particle.maxLife;
-        
+
         if (particle.life <= 0) {
             particles.splice(i, 1);
         }
@@ -600,7 +613,7 @@ function createParticles(x, y, color) {
 // Update power-up display
 function updatePowerUpDisplay() {
     let powerUpText = '';
-    
+
     if (player.speedBoostTimer > 0) {
         powerUpText += '⚡ Slow Motion ';
     }
@@ -613,7 +626,7 @@ function updatePowerUpDisplay() {
     if (player.doubleJumpTimer > 0) {
         powerUpText += '🌀 Double Jump ';
     }
-    
+
     // Update power-up indicator (you'll need to add this element to HTML)
     const powerUpElement = document.getElementById('power-up-display');
     if (powerUpElement) {
@@ -626,15 +639,15 @@ function updatePowerUpDisplay() {
 function checkSpeedMilestones() {
     const currentLevel = Math.floor(score / 500);
     const lastLevel = Math.floor(lastMilestone / 500);
-    
+
     if (currentLevel > lastLevel && currentLevel > 0) {
         const levelScore = currentLevel * 500;
         lastMilestone = levelScore;
-        
+
         // Progressive speed increase: each level adds more speed
         const speedIncrease = 0.4 + (currentLevel * 0.15);
         gameSpeed = baseGameSpeed + speedIncrease;
-        
+
         // Visual feedback for level completion
         showLevelMessage(currentLevel, speedIncrease);
         createSpeedBoostEffect();
@@ -654,9 +667,9 @@ function showLevelMessage(level, speedIncrease) {
             <p>Speed: ${(baseGameSpeed + speedIncrease).toFixed(1)}x</p>
         </div>
     `;
-    
+
     document.body.appendChild(messageDiv);
-    
+
     // Remove message after animation (reduced time for less interruption)
     setTimeout(() => {
         if (messageDiv.parentNode) {
@@ -670,8 +683,8 @@ function createSpeedBoostEffect() {
     // Create multiple particles around the player for speed boost effect
     for (let i = 0; i < 15; i++) {
         particles.push({
-            x: player.x + player.width/2,
-            y: player.y + player.height/2,
+            x: player.x + player.width / 2,
+            y: player.y + player.height / 2,
             velX: (Math.random() - 0.5) * 12,
             velY: (Math.random() - 0.5) * 12,
             life: 60,
@@ -701,40 +714,41 @@ function checkCollision(rect1, rect2) {
         width: rect1.width - 4,
         height: rect1.height - 4
     };
-    
+
     return player1.x < rect2.x + rect2.width &&
-           player1.x + player1.width > rect2.x &&
-           player1.y < rect2.y + rect2.height &&
-           player1.y + player1.height > rect2.y;
+        player1.x + player1.width > rect2.x &&
+        player1.y < rect2.y + rect2.height &&
+        player1.y + player1.height > rect2.y;
 }
 
 // Render game
 function render() {
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
     if (gameState !== 'playing') return;
-    
-    // Draw ground line
+
+    // Draw ground line - make it responsive to canvas height
+    const groundLineY = canvas.height - 60;
     ctx.strokeStyle = '#228B22';
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(0, 340);
-    ctx.lineTo(canvas.width, 340);
+    ctx.moveTo(0, groundLineY);
+    ctx.lineTo(canvas.width, groundLineY);
     ctx.stroke();
-    
+
     // Draw player
     drawPlayer();
-    
+
     // Draw obstacles
     obstacles.forEach(drawObstacle);
-    
+
     // Draw fruits
     fruits.forEach(drawFruit);
-    
+
     // Draw bonus items
     bonusItems.forEach(drawBonusItem);
-    
+
     // Draw particles
     particles.forEach(drawParticle);
 }
@@ -744,13 +758,14 @@ function drawPlayer() {
     const fruit = fruitTypes[player.currentFruit];
     const centerX = player.x + player.width / 2;
     const centerY = player.y + player.height / 2;
-    
-    // Player shadow
+
+    // Player shadow - make it responsive to canvas height
+    const shadowY = canvas.height - 60;
     ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
     ctx.beginPath();
-    ctx.ellipse(centerX, 340, player.width/2, 5, 0, 0, Math.PI * 2);
+    ctx.ellipse(centerX, shadowY, player.width / 2, 5, 0, 0, Math.PI * 2);
     ctx.fill();
-    
+
     // Power-up visual effects
     if (player.megaJumpTimer > 0) {
         ctx.shadowColor = '#FF4500';
@@ -765,22 +780,22 @@ function drawPlayer() {
         ctx.shadowColor = '#00FFFF';
         ctx.shadowBlur = 18;
     }
-    
+
     // Draw arms (stick figure style)
     ctx.strokeStyle = '#8B4513';
     ctx.lineWidth = 3;
     ctx.lineCap = 'round';
-    
+
     if (player.grounded) {
         // Running arms animation
         const armSwing = Math.sin(player.runCycle) * 0.4;
-        
+
         // Left arm
         ctx.beginPath();
         ctx.moveTo(centerX - 12, centerY - 2);
         ctx.lineTo(centerX - 18 + armSwing * 8, centerY + 8 - armSwing * 12);
         ctx.stroke();
-        
+
         // Right arm
         ctx.beginPath();
         ctx.moveTo(centerX + 12, centerY - 2);
@@ -790,48 +805,48 @@ function drawPlayer() {
         // Jumping/reaching arms
         const reachExtension = player.armReach * 12;
         const reachHeight = player.armReach * 8;
-        
+
         // Left arm reaching up
         ctx.beginPath();
         ctx.moveTo(centerX - 12, centerY - 2);
         ctx.lineTo(centerX - 20 - reachExtension, centerY - 12 - reachHeight);
         ctx.stroke();
-        
+
         // Right arm reaching up
         ctx.beginPath();
         ctx.moveTo(centerX + 12, centerY - 2);
         ctx.lineTo(centerX + 20 + reachExtension, centerY - 12 - reachHeight);
         ctx.stroke();
-        
+
         // Draw hands when reaching
         if (player.armReach > 0.5) {
             ctx.fillStyle = '#FDBCB4';
-            
+
             // Left hand
             ctx.beginPath();
             ctx.arc(centerX - 20 - reachExtension, centerY - 12 - reachHeight, 2.5, 0, Math.PI * 2);
             ctx.fill();
-            
+
             // Right hand  
             ctx.beginPath();
             ctx.arc(centerX + 20 + reachExtension, centerY - 12 - reachHeight, 2.5, 0, Math.PI * 2);
             ctx.fill();
         }
     }
-    
+
     // Draw legs (stick figure style)
     ctx.strokeStyle = '#8B4513';
     ctx.lineWidth = 3;
-    
+
     if (player.grounded) {
         const legSwing = Math.sin(player.runCycle + Math.PI) * 0.3;
-        
+
         // Left leg
         ctx.beginPath();
         ctx.moveTo(centerX - 6, centerY + 12);
         ctx.lineTo(centerX - 10 + legSwing * 6, centerY + 20 + legSwing * 4);
         ctx.stroke();
-        
+
         // Right leg
         ctx.beginPath();
         ctx.moveTo(centerX + 6, centerY + 12);
@@ -843,21 +858,21 @@ function drawPlayer() {
         ctx.moveTo(centerX - 6, centerY + 12);
         ctx.lineTo(centerX - 12, centerY + 16);
         ctx.stroke();
-        
+
         ctx.beginPath();
         ctx.moveTo(centerX + 6, centerY + 12);
         ctx.lineTo(centerX + 12, centerY + 16);
         ctx.stroke();
     }
-    
+
     // Draw fruit-specific body shapes
     if (player.currentFruit === 'orange') {
         // Orange: circular with segments
         ctx.fillStyle = '#FFA500';
         ctx.beginPath();
-        ctx.arc(centerX, centerY, player.width/2 - 2, 0, Math.PI * 2);
+        ctx.arc(centerX, centerY, player.width / 2 - 2, 0, Math.PI * 2);
         ctx.fill();
-        
+
         // Orange segments
         ctx.strokeStyle = '#FF8C00';
         ctx.lineWidth = 1;
@@ -865,36 +880,36 @@ function drawPlayer() {
             const angle = (i * Math.PI) / 3;
             ctx.beginPath();
             ctx.moveTo(centerX, centerY);
-            ctx.lineTo(centerX + Math.cos(angle) * (player.width/2 - 2), centerY + Math.sin(angle) * (player.width/2 - 2));
+            ctx.lineTo(centerX + Math.cos(angle) * (player.width / 2 - 2), centerY + Math.sin(angle) * (player.width / 2 - 2));
             ctx.stroke();
         }
     } else if (player.currentFruit === 'apple') {
         // Apple: heart-ish shape
         ctx.fillStyle = '#FF0000';
         ctx.beginPath();
-        ctx.arc(centerX - 5, centerY - 3, player.width/2 - 5, 0, Math.PI * 2);
-        ctx.arc(centerX + 5, centerY - 3, player.width/2 - 5, 0, Math.PI * 2);
+        ctx.arc(centerX - 5, centerY - 3, player.width / 2 - 5, 0, Math.PI * 2);
+        ctx.arc(centerX + 5, centerY - 3, player.width / 2 - 5, 0, Math.PI * 2);
         ctx.fill();
-        
+
         ctx.beginPath();
         ctx.moveTo(centerX - 8, centerY + 2);
-        ctx.quadraticCurveTo(centerX, centerY + player.width/2 + 2, centerX + 8, centerY + 2);
+        ctx.quadraticCurveTo(centerX, centerY + player.width / 2 + 2, centerX + 8, centerY + 2);
         ctx.fill();
-        
+
         // Apple stem
         ctx.strokeStyle = '#8B4513';
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.moveTo(centerX, centerY - player.width/2 + 2);
-        ctx.lineTo(centerX - 2, centerY - player.width/2 - 3);
+        ctx.moveTo(centerX, centerY - player.width / 2 + 2);
+        ctx.lineTo(centerX - 2, centerY - player.width / 2 - 3);
         ctx.stroke();
     } else if (player.currentFruit === 'banana') {
         // Banana: curved elongated shape
         ctx.fillStyle = '#FFFF00';
         ctx.beginPath();
-        ctx.ellipse(centerX + 2, centerY - 2, player.width/2 + 3, player.width/2 - 5, Math.PI/8, 0, Math.PI * 2);
+        ctx.ellipse(centerX + 2, centerY - 2, player.width / 2 + 3, player.width / 2 - 5, Math.PI / 8, 0, Math.PI * 2);
         ctx.fill();
-        
+
         // Banana curve lines
         ctx.strokeStyle = '#FFD700';
         ctx.lineWidth = 1;
@@ -908,56 +923,56 @@ function drawPlayer() {
         // Grape: cluster of small circles arranged more compactly
         ctx.fillStyle = '#800080';
         const grapePositions = [
-            {x: 0, y: -8}, 
-            {x: -5, y: -3}, {x: 5, y: -3},
-            {x: -7, y: 2}, {x: 0, y: 2}, {x: 7, y: 2},
-            {x: -4, y: 7}, {x: 4, y: 7},
-            {x: 0, y: 10}
+            { x: 0, y: -8 },
+            { x: -5, y: -3 }, { x: 5, y: -3 },
+            { x: -7, y: 2 }, { x: 0, y: 2 }, { x: 7, y: 2 },
+            { x: -4, y: 7 }, { x: 4, y: 7 },
+            { x: 0, y: 10 }
         ];
-        
+
         grapePositions.forEach(pos => {
             ctx.beginPath();
             ctx.arc(centerX + pos.x, centerY + pos.y, 3.5, 0, Math.PI * 2);
             ctx.fill();
         });
     }
-    
+
     // Reset shadow
     ctx.shadowBlur = 0;
-    
+
     // Player border
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    
+
     if (player.currentFruit === 'orange') {
-        ctx.arc(centerX, centerY, player.width/2 - 2, 0, Math.PI * 2);
+        ctx.arc(centerX, centerY, player.width / 2 - 2, 0, Math.PI * 2);
     } else if (player.currentFruit === 'apple') {
-        ctx.arc(centerX - 5, centerY - 3, player.width/2 - 5, 0, Math.PI * 2);
-        ctx.moveTo(centerX + 5 + player.width/2 - 5, centerY - 3);
-        ctx.arc(centerX + 5, centerY - 3, player.width/2 - 5, 0, Math.PI * 2);
+        ctx.arc(centerX - 5, centerY - 3, player.width / 2 - 5, 0, Math.PI * 2);
+        ctx.moveTo(centerX + 5 + player.width / 2 - 5, centerY - 3);
+        ctx.arc(centerX + 5, centerY - 3, player.width / 2 - 5, 0, Math.PI * 2);
         ctx.moveTo(centerX - 8, centerY + 2);
-        ctx.quadraticCurveTo(centerX, centerY + player.width/2 + 2, centerX + 8, centerY + 2);
+        ctx.quadraticCurveTo(centerX, centerY + player.width / 2 + 2, centerX + 8, centerY + 2);
     } else if (player.currentFruit === 'banana') {
-        ctx.ellipse(centerX + 2, centerY - 2, player.width/2 + 3, player.width/2 - 5, Math.PI/8, 0, Math.PI * 2);
+        ctx.ellipse(centerX + 2, centerY - 2, player.width / 2 + 3, player.width / 2 - 5, Math.PI / 8, 0, Math.PI * 2);
     }
     ctx.stroke();
-    
+
     // Draw face on the fruit
     // Eyes
     const eyeSize = Math.sin(player.eyeBlink * 8) < -0.8 ? 1 : 2.5; // Blinking effect
     ctx.fillStyle = '#000';
-    
+
     // Left eye
     ctx.beginPath();
     ctx.arc(centerX - 6, centerY - 4, eyeSize, 0, Math.PI * 2);
     ctx.fill();
-    
+
     // Right eye
     ctx.beginPath();
     ctx.arc(centerX + 6, centerY - 4, eyeSize, 0, Math.PI * 2);
     ctx.fill();
-    
+
     // Mouth (smile)
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 1.5;
@@ -968,82 +983,83 @@ function drawPlayer() {
 
 // Draw obstacle
 function drawObstacle(obstacle) {
-    // Obstacle shadow
+    // Obstacle shadow - make it responsive to canvas height
+    const shadowY = canvas.height - 58;
     ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-    ctx.fillRect(obstacle.x + 2, 342, obstacle.width, 8);
-    
+    ctx.fillRect(obstacle.x + 2, shadowY, obstacle.width, 8);
+
     // Obstacle body
     ctx.fillStyle = obstacle.color;
     ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-    
+
     // Obstacle border
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 2;
     ctx.strokeRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-    
+
     // Draw obstacle emoji
     ctx.font = '20px Arial';
     ctx.textAlign = 'center';
     ctx.fillStyle = '#000';
-    ctx.fillText(obstacle.emoji, obstacle.x + obstacle.width/2, obstacle.y + obstacle.height/2 + 6);
+    ctx.fillText(obstacle.emoji, obstacle.x + obstacle.width / 2, obstacle.y + obstacle.height / 2 + 6);
 }
 
 // Draw fruit
 function drawFruit(fruit) {
     const bobY = fruit.y + Math.sin(fruit.bobOffset) * 3;
-    
+
     // Fruit glow
     ctx.shadowColor = fruit.color;
     ctx.shadowBlur = 10;
-    
+
     // Fruit body
     ctx.fillStyle = fruit.color;
     ctx.beginPath();
-    ctx.arc(fruit.x + fruit.width/2, bobY + fruit.height/2, fruit.width/2, 0, Math.PI * 2);
+    ctx.arc(fruit.x + fruit.width / 2, bobY + fruit.height / 2, fruit.width / 2, 0, Math.PI * 2);
     ctx.fill();
-    
+
     // Reset shadow
     ctx.shadowBlur = 0;
-    
+
     // Fruit border
     ctx.strokeStyle = '#000';
     ctx.lineWidth = 2;
     ctx.stroke();
-    
+
     // Draw fruit emoji
     ctx.font = '18px Arial';
     ctx.textAlign = 'center';
     ctx.fillStyle = '#000';
-    ctx.fillText(fruit.emoji, fruit.x + fruit.width/2, bobY + fruit.height/2 + 6);
+    ctx.fillText(fruit.emoji, fruit.x + fruit.width / 2, bobY + fruit.height / 2 + 6);
 }
 
 // Draw bonus item
 function drawBonusItem(bonus) {
     const sparkleOffset = Math.sin(bonus.sparkle) * 2;
-    
+
     // Sparkle effect
     ctx.shadowColor = '#FFD700';
     ctx.shadowBlur = 15;
-    
+
     // Bonus body
     ctx.fillStyle = '#FFD700';
     ctx.beginPath();
-    ctx.arc(bonus.x + bonus.width/2, bonus.y + bonus.height/2 + sparkleOffset, bonus.width/2, 0, Math.PI * 2);
+    ctx.arc(bonus.x + bonus.width / 2, bonus.y + bonus.height / 2 + sparkleOffset, bonus.width / 2, 0, Math.PI * 2);
     ctx.fill();
-    
+
     // Reset shadow
     ctx.shadowBlur = 0;
-    
+
     // Bonus border
     ctx.strokeStyle = '#FF6347';
     ctx.lineWidth = 2;
     ctx.stroke();
-    
+
     // Draw bonus emoji
     ctx.font = '16px Arial';
     ctx.textAlign = 'center';
     ctx.fillStyle = '#000';
-    ctx.fillText(bonus.emoji, bonus.x + bonus.width/2, bonus.y + bonus.height/2 + sparkleOffset + 5);
+    ctx.fillText(bonus.emoji, bonus.x + bonus.width / 2, bonus.y + bonus.height / 2 + sparkleOffset + 5);
 }
 
 // Draw particle
@@ -1071,6 +1087,6 @@ window.addEventListener('load', () => {
             audioContext.resume();
         }
     }, { once: true });
-    
+
     init();
 });

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700;800&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <div id="game-container">
         <!-- Background layers for parallax effect -->
@@ -14,10 +16,10 @@
         <div class="background-layer bg-clouds"></div>
         <div class="background-layer bg-mountains"></div>
         <div class="background-layer bg-ground"></div>
-        
+
         <!-- Game canvas -->
         <canvas id="gameCanvas" width="800" height="400"></canvas>
-        
+
         <!-- UI Elements -->
         <div id="game-ui">
             <div id="score-display">
@@ -38,9 +40,9 @@
                     <span id="speed-display">1.0x</span>
                 </div>
             </div>
-            
+
             <div id="power-up-display" class="power-up-indicator"></div>
-            
+
             <div id="game-over-screen" class="hidden">
                 <div class="game-over-content">
                     <h1>🍊 Game Over! 🍊</h1>
@@ -53,7 +55,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <div id="start-screen">
                 <div class="start-content">
                     <h1>🍊 FRUIT RUN 🍊</h1>
@@ -78,7 +80,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Floating animations -->
         <div class="floating-elements">
             <div class="floating-fruit">🍎</div>
@@ -87,21 +89,30 @@
             <div class="floating-fruit">🍊</div>
         </div>
     </div>
-    
+
     <!-- Audio elements -->
     <audio id="jumpSound" preload="auto">
-        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsF" type="audio/wav">
+        <source
+            src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsF"
+            type="audio/wav">
     </audio>
     <audio id="collectSound" preload="auto">
-        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsF" type="audio/wav">
+        <source
+            src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsF"
+            type="audio/wav">
     </audio>
     <audio id="hitSound" preload="auto">
-        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsF" type="audio/wav">
+        <source
+            src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsF"
+            type="audio/wav">
     </audio>
     <audio id="transformSound" preload="auto">
-        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsF" type="audio/wav">
+        <source
+            src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsF"
+            type="audio/wav">
     </audio>
 
     <script src="script.js"></script>
 </body>
+
 </html>
