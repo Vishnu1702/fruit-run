@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fruit Run - Fun Jumping Game!</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="game-container">
+        <!-- Background layers for parallax effect -->
+        <div class="background-layer bg-sky"></div>
+        <div class="background-layer bg-clouds"></div>
+        <div class="background-layer bg-mountains"></div>
+        <div class="background-layer bg-ground"></div>
+        
+        <!-- Game canvas -->
+        <canvas id="gameCanvas" width="800" height="400"></canvas>
+        
+        <!-- UI Elements -->
+        <div id="game-ui">
+            <div id="score-display">
+                <div class="score-item">
+                    <span class="score-label">Level:</span>
+                    <span id="current-level">1</span>
+                </div>
+                <div class="score-item">
+                    <span class="score-label">Score:</span>
+                    <span id="current-score">0</span>
+                </div>
+                <div class="score-item">
+                    <span class="score-label">High Score:</span>
+                    <span id="high-score">0</span>
+                </div>
+                <div class="score-item">
+                    <span class="score-label">Speed:</span>
+                    <span id="speed-display">1.0x</span>
+                </div>
+            </div>
+            
+            <div id="power-up-display" class="power-up-indicator"></div>
+            
+            <div id="game-over-screen" class="hidden">
+                <div class="game-over-content">
+                    <h1>🍊 Game Over! 🍊</h1>
+                    <div class="final-score">
+                        <p>Your Score: <span id="final-score">0</span></p>
+                        <p id="new-record" class="hidden">🎉 NEW HIGH SCORE! 🎉</p>
+                    </div>
+                    <button id="retry-button" class="game-button">
+                        🔄 Play Again
+                    </button>
+                </div>
+            </div>
+            
+            <div id="start-screen">
+                <div class="start-content">
+                    <h1>🍊 FRUIT RUN 🍊</h1>
+                    <p class="game-description">
+                        Jump over obstacles and collect fruits!<br>
+                        🍎 Apple • 🍌 Banana • 🍇 Grape<br>
+                        <strong>SPACEBAR</strong> or <strong>CLICK</strong> to jump!
+                    </p>
+                    <div class="controls-help">
+                        <p>• Avoid tree stumps, rocks, and water</p>
+                        <p>• Collect fruits to change character & earn bonus points</p>
+                        <p>• Complete levels every 500 points for speed boosts!</p>
+                        <p>• <strong>Speed Milestones:</strong> 500, 1000, 2000, 3000, 5000+ points!</p>
+                        <p><strong>Power-ups:</strong> ⚡ Slow Motion • 🚀 Mega Jump • 🪶 Float • 🌀 Double Jump</p>
+                    </div>
+                    <button id="start-button" class="game-button">
+                        🚀 Start Game
+                    </button>
+                    <button id="reset-high-score" class="game-button secondary-button">
+                        🔄 Reset High Score
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Floating animations -->
+        <div class="floating-elements">
+            <div class="floating-fruit">🍎</div>
+            <div class="floating-fruit">🍌</div>
+            <div class="floating-fruit">🍇</div>
+            <div class="floating-fruit">🍊</div>
+        </div>
+    </div>
+    
+    <!-- Audio elements -->
+    <audio id="jumpSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsF" type="audio/wav">
+    </audio>
+    <audio id="collectSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsF" type="audio/wav">
+    </audio>
+    <audio id="hitSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsF" type="audio/wav">
+    </audio>
+    <audio id="transformSound" preload="auto">
+        <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmEaBDuR1/LKeSsF" type="audio/wav">
+    </audio>
+
+    <script src="script.js"></script>
+</body>
+</html>
