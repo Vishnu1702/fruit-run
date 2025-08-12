@@ -2,6 +2,12 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+// Delta time variables for frame-rate independence
+let lastTime = 0;
+let deltaTime = 0;
+const targetFPS = 60;
+const fixedTimeStep = 1000 / targetFPS; // 16.67ms for 60 FPS
+
 // Game state
 let gameState = 'start'; // 'start', 'playing', 'gameOver'
 let gameSpeed = 2;
@@ -283,7 +289,7 @@ function showCelebrationMessage() {
 }
 
 // Update game objects
-function update() {
+function update(deltaMultiplier = 1) {
     if (gameState !== 'playing') return;
 
     frameCount++;
@@ -291,33 +297,33 @@ function update() {
     // Milestone-based speed increases
     checkSpeedMilestones();
 
-    // Gradual speed increase over time
-    gameSpeed += 0.0005; // Reduced gradual increase since we have milestones
+    // Gradual speed increase over time (frame-rate independent)
+    gameSpeed += 0.0005 * deltaMultiplier; // Apply delta time
 
-    // Update power-up timers
+    // Update power-up timers (frame-rate independent)
     if (player.speedBoostTimer > 0) {
-        player.speedBoostTimer--;
+        player.speedBoostTimer -= deltaMultiplier;
     }
     if (player.megaJumpTimer > 0) {
-        player.megaJumpTimer--;
+        player.megaJumpTimer -= deltaMultiplier;
     }
     if (player.floatTimer > 0) {
-        player.floatTimer--;
+        player.floatTimer -= deltaMultiplier;
     }
     if (player.doubleJumpTimer > 0) {
-        player.doubleJumpTimer--;
+        player.doubleJumpTimer -= deltaMultiplier;
     }
 
-    // Update player animations
+    // Update player animations (frame-rate independent)
     if (player.grounded) {
-        player.runCycle += 0.3; // Running animation speed
+        player.runCycle += 0.3 * deltaMultiplier; // Running animation speed
     }
 
     // Arm reaching animation when jumping or near fruits
     if (player.jumping || !player.grounded) {
-        player.armReach = Math.min(player.armReach + 0.2, 1);
+        player.armReach = Math.min(player.armReach + 0.2 * deltaMultiplier, 1);
     } else {
-        player.armReach = Math.max(player.armReach - 0.1, 0);
+        player.armReach = Math.max(player.armReach - 0.1 * deltaMultiplier, 0);
     }
 
     // Check if near fruits to extend arms
@@ -331,25 +337,25 @@ function update() {
     }
 
     if (nearFruit && !player.grounded) {
-        player.armReach = Math.min(player.armReach + 0.3, 1);
+        player.armReach = Math.min(player.armReach + 0.3 * deltaMultiplier, 1);
     }
 
-    // Eye blinking animation
-    player.eyeBlink += 0.1;
+    // Eye blinking animation (frame-rate independent)
+    player.eyeBlink += 0.1 * deltaMultiplier;
     if (player.eyeBlink > Math.PI * 2) {
         player.eyeBlink = 0;
     }
 
-    // Update player physics
-    let gravity = 0.6; // Base gravity
+    // Update player physics (frame-rate independent)
+    let gravity = 0.6 * deltaMultiplier; // Base gravity
 
     // Floating power-up reduces gravity significantly
     if (player.floatTimer > 0) {
-        gravity = 0.2;
+        gravity = 0.2 * deltaMultiplier;
     }
 
     player.velY += gravity;
-    player.y += player.velY;
+    player.y += player.velY * deltaMultiplier;
 
     // Ground collision - make it responsive to canvas height
     const canvas = document.getElementById('gameCanvas');
@@ -476,8 +482,8 @@ function spawnBonusItem() {
 
 // Update obstacles
 function updateObstacles() {
-    // Calculate current speed including power-ups
-    let currentSpeed = gameSpeed;
+    // Calculate current speed including power-ups (frame-rate independent)
+    let currentSpeed = gameSpeed * deltaTime / fixedTimeStep;
     if (player.speedBoostTimer > 0) {
         currentSpeed *= 0.5; // Slow down obstacles when speed boost is active
     }
@@ -501,8 +507,8 @@ function updateObstacles() {
 
 // Update fruits
 function updateFruits() {
-    // Calculate current speed including power-ups
-    let currentSpeed = gameSpeed;
+    // Calculate current speed including power-ups (frame-rate independent)
+    let currentSpeed = gameSpeed * deltaTime / fixedTimeStep;
     if (player.speedBoostTimer > 0) {
         currentSpeed *= 0.5;
     }
@@ -510,7 +516,7 @@ function updateFruits() {
     for (let i = fruits.length - 1; i >= 0; i--) {
         const fruit = fruits[i];
         fruit.x -= currentSpeed;
-        fruit.bobOffset += 0.1;
+        fruit.bobOffset += 0.1 * deltaTime / fixedTimeStep; // Frame-rate independent bobbing
 
         // Check collision with player
         if (checkCollision(player, fruit)) {
@@ -540,8 +546,8 @@ function updateFruits() {
 
 // Update bonus items
 function updateBonusItems() {
-    // Calculate current speed including power-ups
-    let currentSpeed = gameSpeed;
+    // Calculate current speed including power-ups (frame-rate independent)
+    let currentSpeed = gameSpeed * deltaTime / fixedTimeStep;
     if (player.speedBoostTimer > 0) {
         currentSpeed *= 0.5;
     }
@@ -549,7 +555,7 @@ function updateBonusItems() {
     for (let i = bonusItems.length - 1; i >= 0; i--) {
         const bonus = bonusItems[i];
         bonus.x -= currentSpeed;
-        bonus.sparkle += 0.2;
+        bonus.sparkle += 0.2 * deltaTime / fixedTimeStep; // Frame-rate independent sparkle
 
         // Check collision with player
         if (checkCollision(player, bonus)) {
@@ -587,11 +593,13 @@ function updateBonusItems() {
 
 // Update particles
 function updateParticles() {
+    const frameMultiplier = deltaTime / fixedTimeStep;
+    
     for (let i = particles.length - 1; i >= 0; i--) {
         const particle = particles[i];
-        particle.x += particle.velX;
-        particle.y += particle.velY;
-        particle.velY += 0.2;
+        particle.x += particle.velX * frameMultiplier;
+        particle.y += particle.velY * frameMultiplier;
+        particle.velY += 0.2 * frameMultiplier;
         particle.life--;
         particle.alpha = particle.life / particle.maxLife;
 
@@ -1079,9 +1087,19 @@ function drawParticle(particle) {
     ctx.globalAlpha = 1;
 }
 
-// Game loop
-function gameLoop() {
-    update();
+// Game loop with delta time for frame-rate independence
+function gameLoop(currentTime = 0) {
+    // Calculate delta time
+    deltaTime = currentTime - lastTime;
+    lastTime = currentTime;
+    
+    // Cap delta time to prevent huge jumps (e.g., when tab becomes inactive)
+    deltaTime = Math.min(deltaTime, fixedTimeStep * 3);
+    
+    // Normalize delta time to 60 FPS equivalent
+    const normalizedDelta = deltaTime / fixedTimeStep;
+    
+    update(normalizedDelta);
     render();
     requestAnimationFrame(gameLoop);
 }
