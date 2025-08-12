@@ -502,6 +502,62 @@ body {
     display: none !important;
 }
 
+/* Popup message styles */
+.popup-message {
+    position: fixed;
+    top: 15%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    pointer-events: none;
+    animation: popupSlide 0.3s ease-out;
+}
+
+.popup-content {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #fff;
+    padding: 20px 40px;
+    border-radius: 25px;
+    border: 3px solid #FF6B35;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    font-family: 'Comic Neue', cursive;
+}
+
+.popup-content h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 800;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    animation: textPulse 0.6s ease-in-out;
+}
+
+@keyframes popupSlide {
+    from {
+        transform: translateX(-50%) translateY(-50px);
+        opacity: 0;
+        scale: 0.8;
+    }
+
+    to {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+        scale: 1;
+    }
+}
+
+@keyframes textPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     #gameCanvas {

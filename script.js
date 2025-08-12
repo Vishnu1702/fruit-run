@@ -124,11 +124,11 @@ function init() {
 
     // Make canvas responsive
     const canvas = document.getElementById('gameCanvas');
-    
+
     // Better responsive canvas sizing
     const maxWidth = Math.min(window.innerWidth * 0.9, 800);
     const maxHeight = Math.min(window.innerHeight * 0.6, 400);
-    
+
     // Minimum dimensions for gameplay
     canvas.width = Math.max(maxWidth, 320);
     canvas.height = Math.max(maxHeight, 240);
@@ -154,7 +154,7 @@ function handleResize() {
     // Better responsive canvas sizing
     const maxWidth = Math.min(window.innerWidth * 0.9, 800);
     const maxHeight = Math.min(window.innerHeight * 0.6, 400);
-    
+
     // Minimum dimensions for gameplay
     canvas.width = Math.max(maxWidth, 320);
     canvas.height = Math.max(maxHeight, 240);
@@ -207,7 +207,7 @@ function startGame() {
     // Reset player position based on canvas size
     const canvas = document.getElementById('gameCanvas');
     const groundY = canvas.height - 100; // Ground is 100px from bottom
-    
+
     player.x = 100;
     player.y = groundY;
     player.velY = 0;
@@ -360,14 +360,14 @@ function update(deltaMultiplier = 1) {
     // Ground collision - make it responsive to canvas height
     const canvas = document.getElementById('gameCanvas');
     const groundY = canvas.height - 100;
-    
+
     // Top boundary check to prevent player from going off-screen during jumps
     const topBoundary = 20; // Minimum distance from top of canvas
     if (player.y < topBoundary) {
         player.y = topBoundary;
         player.velY = Math.max(player.velY, 0); // Stop upward movement
     }
-    
+
     if (player.y >= groundY) {
         player.y = groundY;
         player.velY = 0;
@@ -378,8 +378,24 @@ function update(deltaMultiplier = 1) {
         }
     }
 
-    // Spawn obstacles
-    if (frameCount % Math.max(60, 120 - Math.floor(gameSpeed * 10)) === 0) {
+    // Spawn obstacles (progressive difficulty - start easier)
+    const obstacleLevel = Math.floor(score / 500) + 1;
+    let obstacleFrequency;
+
+    if (obstacleLevel === 1) {
+        obstacleFrequency = 180; // Very easy start - spawn every 3 seconds
+    } else if (obstacleLevel === 2) {
+        obstacleFrequency = 150; // Still easy - spawn every 2.5 seconds
+    } else if (obstacleLevel === 3) {
+        obstacleFrequency = 120; // Medium difficulty - spawn every 2 seconds
+    } else if (obstacleLevel <= 5) {
+        obstacleFrequency = 100; // Getting harder
+    } else {
+        // Dynamic frequency based on game speed for higher levels
+        obstacleFrequency = Math.max(60, 120 - Math.floor(gameSpeed * 10));
+    }
+
+    if (frameCount % obstacleFrequency === 0) {
         spawnObstacle();
     }
 
@@ -424,7 +440,7 @@ function update(deltaMultiplier = 1) {
 function spawnObstacle() {
     const obstacleType = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
     const groundY = canvas.height - 100;
-    
+
     obstacles.push({
         x: canvas.width,
         y: obstacleType.type === 'water' ? groundY + 20 : groundY - obstacleType.height,
@@ -441,7 +457,7 @@ function spawnFruit() {
     const fruitNames = Object.keys(fruitTypes);
     const randomFruit = fruitNames[Math.floor(Math.random() * fruitNames.length)];
     const fruit = fruitTypes[randomFruit];
-    
+
     // Make fruit spawning relative to canvas height
     const minY = canvas.height * 0.2; // 20% from top
     const maxY = canvas.height * 0.6; // 60% from top
@@ -462,7 +478,7 @@ function spawnFruit() {
 // Spawn bonus item
 function spawnBonusItem() {
     const bonusType = bonusTypes[Math.floor(Math.random() * bonusTypes.length)];
-    
+
     // Make bonus item spawning relative to canvas height
     const minY = canvas.height * 0.15; // 15% from top
     const maxY = canvas.height * 0.5;  // 50% from top
@@ -594,7 +610,7 @@ function updateBonusItems() {
 // Update particles
 function updateParticles() {
     const frameMultiplier = deltaTime / fixedTimeStep;
-    
+
     for (let i = particles.length - 1; i >= 0; i--) {
         const particle = particles[i];
         particle.x += particle.velX * frameMultiplier;
@@ -670,27 +686,26 @@ function checkSpeedMilestones() {
     }
 }
 
-// Show level completion message
+// Show level completion message using popup overlay
 function showLevelMessage(level, speedIncrease) {
-    // Create a temporary message element
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'milestone-message';
-    messageDiv.innerHTML = `
-        <div class="milestone-content">
-            <h3>🎯 LEVEL ${level} COMPLETED! 🎯</h3>
-            <p>${level * 500} Points Reached!</p>
-            <p>Speed: ${(baseGameSpeed + speedIncrease).toFixed(1)}x</p>
-        </div>
+    const popup = document.getElementById('popup-message');
+    const popupText = document.getElementById('popup-text');
+
+    // Set the message content
+    popupText.innerHTML = `
+        🎯 LEVEL ${level} COMPLETED! 🎯<br>
+        <small style="font-size: 16px; margin-top: 5px; display: block;">
+            ${level * 500} Points • Speed: ${(baseGameSpeed + speedIncrease).toFixed(1)}x
+        </small>
     `;
 
-    document.body.appendChild(messageDiv);
+    // Show the popup
+    popup.classList.remove('hidden');
 
-    // Remove message after animation (reduced time for less interruption)
+    // Hide the popup after a short time (reduced from 1500ms to 1000ms)
     setTimeout(() => {
-        if (messageDiv.parentNode) {
-            messageDiv.parentNode.removeChild(messageDiv);
-        }
-    }, 1500);
+        popup.classList.add('hidden');
+    }, 1000);
 }
 
 // Create visual effect for speed boost
@@ -1092,13 +1107,13 @@ function gameLoop(currentTime = 0) {
     // Calculate delta time
     deltaTime = currentTime - lastTime;
     lastTime = currentTime;
-    
+
     // Cap delta time to prevent huge jumps (e.g., when tab becomes inactive)
     deltaTime = Math.min(deltaTime, fixedTimeStep * 3);
-    
+
     // Normalize delta time to 60 FPS equivalent
     const normalizedDelta = deltaTime / fixedTimeStep;
-    
+
     update(normalizedDelta);
     render();
     requestAnimationFrame(gameLoop);
